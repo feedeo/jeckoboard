@@ -44,4 +44,18 @@
             <version>3.2.2.RELEASE</version>
         </dependency>
     </dependencies>
+
+
+    <distributionManagement>
+        <repository>
+            <id>feedeo-release</id>
+            <name>libs-release-local</name>
+            <url>http://binary.feedeo.com/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>feedeo-snapshot</id>
+            <name>libs-snapshot-local</name>
+            <url>http://binary.feedeo.com/libs-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
