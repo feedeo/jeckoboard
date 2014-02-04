@@ -1,4 +1,4 @@
 jeckboard
 =========
 
-Geckoboard Java client library
+Geckoboard Java library
