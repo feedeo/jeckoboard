@@ -2,8 +2,6 @@ package com.feedeo.geckoboard.web.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.feedeo.geckoboard.exception.UnableToPushToWidgetException;
-import com.feedeo.geckoboard.model.widget.LineChartWidget;
-import com.feedeo.geckoboard.web.client.GeckoboardTemplate;
 import com.feedeo.geckoboard.web.message.GeckoboardPushRequest;
 import com.feedeo.geckoboard.web.message.GeckoboardResponse;
 import org.junit.Before;
@@ -19,6 +17,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -26,17 +25,15 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GeckoboardTemplateTest {
-    @Mock
-    private RestOperations restOperations;
-
-    private GeckoboardTemplate target;
-
-    private String apiKey, widgetKey;
-
+    public static final String jsonPushRequestBulletGraphWidget = "{\"api_key\":\"\",\"data\":{\"orientation\":\"horizontal\",\"item\":{\"label\":\"Revenue 2014 YTD\",\"sublabel\":\"(U.S. $ in thousands)\",\"axis\":{\"point\":[\"0\",\"200\",\"400\",\"600\",\"800\",\"1000\"]},\"range\":{\"red\":{\"start\":0,\"end\":400},\"amber\":{\"start\":401,\"end\":700},\"green\":{\"start\":701,\"end\":1000}},\"measure\":{\"current\":{\"start\":\"0\",\"end\":\"500\"},\"projected\":{\"start\":\"100\",\"end\":\"900\"}},\"comparative\":{\"point\":\"600\"}}}}";
     public static final String jsonPushRequestToNumberAndSecondaryWidget = "{\"api_key\":\"\",\"data\":{\"item\":[{\"text\":\"\",\"value\":1},{\"text\":\"\",\"value\":2}]}}";
     public static final String jsonPushRequestToNumberRagNumbersOnlyWidget = "{\"api_key\":\"\",\"data\":{\"item\":[{\"text\":\"\",\"value\":10},{\"text\":\"\",\"value\":20},{\"text\":\"\",\"value\":1}]}}";
     public static final String jsonPushRequestToGeckOMeterWidget = "{\"api_key\":\"\",\"data\":{\"item\":10,\"max\":{\"text\":\"\",\"value\":20},\"min\":{\"text\":\"\",\"value\":1}}}";
     public static final String jsonPushRequestToLineChartWidget = "{\"api_key\":\"\",\"data\":{\"item\":[\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"],\"settings\":{\"axisx\":[\"00:00\",\"06:00\",\"12:00\",\"18:00\",\"00:00\"],\"axisy\":[\"Min\",\"Max\"]}}}";
+    @Mock
+    private RestOperations restOperations;
+    private GeckoboardTemplate target;
+    private String apiKey, widgetKey;
 
     @Before
     public void setUp() {
@@ -49,6 +46,41 @@ public class GeckoboardTemplateTest {
     }
 
     @Test
+    public void shouldPushBulletGraphWidget() throws UnableToPushToWidgetException {
+        when(restOperations.postForObject(any(String.class), any(GeckoboardPushRequest.class), eq(GeckoboardResponse.class))).thenAnswer(new Answer() {
+            public Object answer(InvocationOnMock invocation) throws IOException {
+                Object[] args = invocation.getArguments();
+                Object mock = invocation.getMock();
+
+                ObjectMapper mapper = new ObjectMapper();
+                String jsonPushRequest = mapper.writer().writeValueAsString((GeckoboardPushRequest) args[1]);
+                GeckoboardResponse response = new GeckoboardResponse();
+                if (jsonPushRequest.equals(jsonPushRequestBulletGraphWidget))
+                    response.setSuccess(true);
+                else {
+                    response.setSuccess(false);
+                    response.setError("");
+                }
+
+                return response;
+            }
+        });
+
+        target.pushToBulletGraphWidget(widgetKey,
+                "horizontal",
+                "Revenue 2014 YTD",
+                "(U.S. $ in thousands)",
+                asList("0", "200", "400", "600", "800", "1000"),
+                0, 400,
+                401, 700,
+                701, 1000,
+                "0", "500",
+                "100", "900",
+                "600");
+        verify(restOperations).postForObject(any(String.class), any(GeckoboardPushRequest.class), eq(GeckoboardResponse.class));
+    }
+
+    @Test
     public void shouldPushStatNumberToNumberAndSecondaryWidget() throws UnableToPushToWidgetException {
         when(restOperations.postForObject(any(String.class), any(GeckoboardPushRequest.class), eq(GeckoboardResponse.class))).thenAnswer(new Answer() {
             public Object answer(InvocationOnMock invocation) throws IOException {
@@ -57,7 +89,6 @@ public class GeckoboardTemplateTest {
 
                 ObjectMapper mapper = new ObjectMapper();
                 String jsonPushRequest = mapper.writer().writeValueAsString((GeckoboardPushRequest)args[1]);
-                System.out.println(jsonPushRequest);
                 GeckoboardResponse response = new GeckoboardResponse();
                 if (jsonPushRequest.equals(jsonPushRequestToNumberAndSecondaryWidget))
                     response.setSuccess(true);

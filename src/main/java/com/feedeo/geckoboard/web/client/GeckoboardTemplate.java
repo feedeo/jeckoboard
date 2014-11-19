@@ -1,7 +1,5 @@
 package com.feedeo.geckoboard.web.client;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.feedeo.geckoboard.exception.UnableToPushToWidgetException;
 import com.feedeo.geckoboard.model.widget.*;
@@ -10,14 +8,12 @@ import com.feedeo.geckoboard.web.message.GeckoboardResponse;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestOperations;
 
-import java.io.IOException;
 import java.util.List;
 
 public class GeckoboardTemplate {
-    private RestOperations restOperations;
     private static String apiKey;
     private static String pushEndpoint = "https://push.geckoboard.com/v1/send/";
-
+    private RestOperations restOperations;
     private ObjectMapper mapper;
 
     public GeckoboardTemplate() {
@@ -39,6 +35,26 @@ public class GeckoboardTemplate {
         } catch (RestClientException e) {
             throw new UnableToPushToWidgetException(e.getMessage(), e);
         }
+    }
+
+    /* Bullet Graph Widget */
+
+    public void pushToBulletGraphWidget(String widgetKey,
+                                        String orientation,
+                                        String label, String sublabel, List<String> axisPoints,
+                                        Number redStart, Number redEnd, Number amberStart, Number amberEnd, Number greenStart, Number greenEnd) throws UnableToPushToWidgetException {
+        GeckoboardWidget widget = new BulletGraphWidget(orientation, label, sublabel, axisPoints, redStart, redEnd, amberStart, amberEnd, greenStart, greenEnd, null, null, null, null, null);
+        pushToWidget(widgetKey, widget);
+    }
+
+    public void pushToBulletGraphWidget(String widgetKey,
+                                        String orientation,
+                                        String label, String sublabel, List<String> axisPoints,
+                                        Number redStart, Number redEnd, Number amberStart, Number amberEnd, Number greenStart, Number greenEnd,
+                                        String currentStart, String currentEnd, String projectedStart, String projectedEnd,
+                                        String comparative) throws UnableToPushToWidgetException {
+        GeckoboardWidget widget = new BulletGraphWidget(orientation, label, sublabel, axisPoints, redStart, redEnd, amberStart, amberEnd, greenStart, greenEnd, currentStart, currentEnd, projectedStart, projectedEnd, comparative);
+        pushToWidget(widgetKey, widget);
     }
 
     /* Number and Secondary Stat Widget */
