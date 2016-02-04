@@ -122,6 +122,18 @@ public class GeckoboardTemplate {
         pushToWidget(widgetKey, widget);
     }
 
+     /* Leaderboard Widget */
+
+    public void pushToLeaderBoardWidget(String widgetKey, String[] labels, Long[] values, Long[] previousRanks) throws UnableToPushToWidgetException {
+        GeckoboardWidget widget = new LeaderboardWidget(labels, values, previousRanks);
+        pushToWidget(widgetKey, widget);
+    }
+
+    public void pushToLeaderBoardWidget(String widgetKey, String[] labels, Long[] values) throws UnableToPushToWidgetException {
+        GeckoboardWidget widget = new LeaderboardWidget(labels, values);
+        pushToWidget(widgetKey, widget);
+    }
+
     public void setRestOperations(RestOperations restOperations) {
         this.restOperations = restOperations;
     }

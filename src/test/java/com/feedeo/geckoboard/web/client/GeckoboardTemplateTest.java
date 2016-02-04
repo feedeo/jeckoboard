@@ -30,6 +30,8 @@ public class GeckoboardTemplateTest {
     public static final String jsonPushRequestToNumberRagNumbersOnlyWidget = "{\"api_key\":\"\",\"data\":{\"item\":[{\"text\":\"\",\"value\":10},{\"text\":\"\",\"value\":20},{\"text\":\"\",\"value\":1}]}}";
     public static final String jsonPushRequestToGeckOMeterWidget = "{\"api_key\":\"\",\"data\":{\"item\":10,\"max\":{\"text\":\"\",\"value\":20},\"min\":{\"text\":\"\",\"value\":1}}}";
     public static final String jsonPushRequestToLineChartWidget = "{\"api_key\":\"\",\"data\":{\"item\":[\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"],\"settings\":{\"axisx\":[\"00:00\",\"06:00\",\"12:00\",\"18:00\",\"00:00\"],\"axisy\":[\"Min\",\"Max\"]}}}";
+    public static final String jsonPushRequestToLeaderboardWidget = "{\"api_key\":\"\",\"data\":{\"items\":[{\"label\":\"Peter\",\"value\":234,\"previous_rank\":2},{\"label\":\"Patrick\",\"value\":232,\"previous_rank\":1},{\"label\":\"Jon\",\"value\":230}]}}";
+
     @Mock
     private RestOperations restOperations;
     private GeckoboardTemplate target;
@@ -196,6 +198,49 @@ public class GeckoboardTemplateTest {
         axysy.add("Max");
 
         target.pushToLineChartWidget(widgetKey, values, axysx, axysy);
+        verify(restOperations).postForObject(any(String.class), any(GeckoboardPushRequest.class), eq(GeckoboardResponse.class));
+    }
+
+    @Test
+    public void shouldPushLeaderboardWidget() throws UnableToPushToWidgetException {
+        when(restOperations.postForObject(any(String.class), any(GeckoboardPushRequest.class), eq(GeckoboardResponse.class))).thenAnswer(new Answer() {
+            public Object answer(InvocationOnMock invocation) throws IOException {
+                Object[] args = invocation.getArguments();
+                Object mock = invocation.getMock();
+
+                ObjectMapper mapper = new ObjectMapper();
+                String jsonPushRequest = mapper.writer().writeValueAsString(args[1]);
+
+                GeckoboardResponse response = new GeckoboardResponse();
+                if (jsonPushRequest.equals(jsonPushRequestToLeaderboardWidget))
+                    response.setSuccess(true);
+                else {
+                    response.setSuccess(false);
+                    response.setError("");
+                }
+
+                return response;
+            }
+        });
+
+        String[] labels = new String[]{
+                "Peter",
+                "Patrick",
+                "Jon"
+        };
+
+        Long[] values = new Long[] {
+                234L,
+                232L,
+                230L
+        };
+
+        Long[] previousRanks = new Long[] {
+                2L,
+                1L
+        };
+
+        target.pushToLeaderBoardWidget(widgetKey, labels, values, previousRanks);
         verify(restOperations).postForObject(any(String.class), any(GeckoboardPushRequest.class), eq(GeckoboardResponse.class));
     }
 
